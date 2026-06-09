@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+cd api || exit 1
+
+yarn lint-staged

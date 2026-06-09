@@ -31,6 +31,24 @@
 $ yarn install
 ```
 
+Depois da instalacao, o script `prepare` ativa automaticamente os hooks do Husky para o clone local.
+
+## Code quality
+
+Antes de cada commit, o hook `pre-commit` executa:
+
+- `eslint --fix` nos arquivos TypeScript staged
+- `prettier --write` nos arquivos staged suportados
+
+Comandos uteis para rodar manualmente:
+
+```bash
+$ yarn lint
+$ yarn lint:fix
+$ yarn format
+$ yarn test
+```
+
 ## Compile and run the project
 
 ```bash
