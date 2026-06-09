@@ -19,12 +19,8 @@
   },
   "eslint.format.enable": false,
   "eslint.useFlatConfig": true,
-  "eslint.validate": [
-    "javascript",
-    "typescript"
-  ],
+  "eslint.validate": ["javascript", "typescript"],
   "prettier.requireConfig": true,
   "prettier.prettierPath": "./node_modules/prettier",
-  "linter.enabled": false,
-  "postman.settings.dotenv-detection-notification-visibility": false
+  "linter.enabled": false
 }
