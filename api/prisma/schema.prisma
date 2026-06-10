@@ -7,12 +7,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum TaskStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-}
-
 model User {
   id        String   @id @default(uuid()) @db.Uuid
   name      String
@@ -30,10 +24,16 @@ model Task {
   title       String     @unique
   description String?
   status      TaskStatus @default(PENDING)
-  userId      String     @db.Uuid @map("user_id")
-  user        User       @relation(fields: [userId], references: [id])
+  userId      String     @map("user_id") @db.Uuid
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
+  user        User       @relation(fields: [userId], references: [id])
 
   @@map("tasks")
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
 }

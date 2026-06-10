@@ -15,24 +15,18 @@
     "outDir": "./dist",
     "incremental": true,
     "skipLibCheck": true,
+    "strict": true,
+    "strictPropertyInitialization": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@core/*": [
-        "./src/core/*"
-      ],
-      "@infra/*": [
-        "./src/infra/*"
-      ],
-      "@/*": [
-        "./src/*"
-      ],
-      "generated/*": [
-        "./generated/*"
-      ]
+      "@core/*": ["./src/core/*"],
+      "@infra/*": ["./src/infra/*"],
+      "@/*": ["./src/*"],
+      "generated/*": ["./generated/*"]
     }
   }
 }
