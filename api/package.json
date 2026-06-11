@@ -22,7 +22,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:prisma": "jest src/database/prisma/__tests__/prisma.service.spec.ts"
+    "test:prisma": "jest src/database/prisma/__tests__/prisma.service.spec.ts",
+    "test:user.service": "jest src/modules/users/__tests__/users.service.spec.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
