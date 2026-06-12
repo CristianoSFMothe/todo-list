@@ -32,3 +32,9 @@ export const prismaUserMock = {
   findMany: jest.fn(),
   create: jest.fn(),
 };
+
+export const usersServiceMock = {
+  create: jest.fn(),
+  findAll: jest.fn(),
+  findById: jest.fn(),
+};

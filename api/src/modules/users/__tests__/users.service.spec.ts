@@ -9,7 +9,7 @@ import {
   prismaUserMock,
   userResponseListMock,
   userResponseMock,
-} from '../__mocks__/create-user.service.mock';
+} from '../__mocks__/user.mock';
 import { UsersService } from '../users.service';
 
 jest.mock('bcrypt');
