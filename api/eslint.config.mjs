@@ -10,7 +10,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default tseslint.config(
   {
-    ignores: ['dist', 'node_modules', 'eslint.config.mjs'],
+    ignores: [
+      'dist',
+      'node_modules',
+      '.husky',
+      'commitlint.config.cjs',
+      'eslint.config.mjs',
+    ],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
