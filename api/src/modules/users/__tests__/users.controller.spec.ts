@@ -1,9 +1,13 @@
-// src/modules/users/tests/users.controller.spec.ts
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import {
   createUserDtoMock,
+  updateUserDtoMock,
   userResponseListMock,
   userResponseMock,
   usersServiceMock,
@@ -132,6 +136,87 @@ describe('UsersController', () => {
         new NotFoundException('User not found'),
       );
       expect(usersServiceMock.findById).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('update', () => {
+    it('should update a user successfully', async () => {
+      // Arrange
+      jest
+        .spyOn(usersServiceMock, 'update')
+        .mockResolvedValue(userResponseMock);
+
+      // Act
+      const result = await controller.update(
+        userResponseMock.id,
+        updateUserDtoMock,
+      );
+
+      // Assert
+      expect(usersServiceMock.update).toHaveBeenCalledWith(
+        userResponseMock.id,
+        updateUserDtoMock,
+      );
+      expect(usersServiceMock.update).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(userResponseMock);
+    });
+
+    it('should throw NotFoundException when user does not exist', async () => {
+      // Arrange
+      jest
+        .spyOn(usersServiceMock, 'update')
+        .mockRejectedValue(new NotFoundException('User not found'));
+
+      // Act
+      const promise = controller.update('non-existing-id', updateUserDtoMock);
+
+      // Assert
+      await expect(promise).rejects.toThrow(
+        new NotFoundException('User not found'),
+      );
+      expect(usersServiceMock.update).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw BadRequestException when passwords are invalid', async () => {
+      // Arrange
+      jest
+        .spyOn(usersServiceMock, 'update')
+        .mockRejectedValue(
+          new BadRequestException(
+            'Both currentPassword and newPassword are required to update password',
+          ),
+        );
+
+      // Act
+      const promise = controller.update(userResponseMock.id, {
+        currentPassword: 'password123',
+      });
+
+      // Assert
+      await expect(promise).rejects.toThrow(
+        new BadRequestException(
+          'Both currentPassword and newPassword are required to update password',
+        ),
+      );
+      expect(usersServiceMock.update).toHaveBeenCalledTimes(1);
+    });
+
+    it('should throw BadRequestException when current password is incorrect', async () => {
+      // Arrange
+      jest
+        .spyOn(usersServiceMock, 'update')
+        .mockRejectedValue(
+          new BadRequestException('Current password is incorrect'),
+        );
+
+      // Act
+      const promise = controller.update(userResponseMock.id, updateUserDtoMock);
+
+      // Assert
+      await expect(promise).rejects.toThrow(
+        new BadRequestException('Current password is incorrect'),
+      );
+      expect(usersServiceMock.update).toHaveBeenCalledTimes(1);
     });
   });
 });
