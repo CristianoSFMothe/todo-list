@@ -1,6 +1,7 @@
 import { TaskStatus } from 'generated/prisma/client';
 
 import { CreateTaskDto } from '../dto/create-task.dto';
+import { TaskResponseDto } from '../dto/task-response.dto';
 import { UpdateTaskDto } from '../dto/update-task.dto';
 
 export const createTaskDtoMock: CreateTaskDto = {
@@ -19,7 +20,7 @@ export const updateTaskDtoMock: UpdateTaskDto = {
   description: 'Updated description',
 };
 
-export const taskResponseMock = {
+export const taskResponseMock: TaskResponseDto = {
   id: '550e8400-e29b-41d4-a716-446655440001',
   title: 'First task',
   description: 'Task description',
@@ -32,19 +33,19 @@ export const taskResponseMock = {
   },
 };
 
-export const taskResponseWithStatusMock = {
+export const taskResponseWithStatusMock: TaskResponseDto = {
   ...taskResponseMock,
   title: 'Task in progress',
   status: TaskStatus.IN_PROGRESS,
 };
 
-export const updatedTaskResponseMock = {
+export const updatedTaskResponseMock: TaskResponseDto = {
   ...taskResponseMock,
   title: 'Updated task',
   description: 'Updated description',
 };
 
-export const completedTaskResponseMock = {
+export const completedTaskResponseMock: TaskResponseDto = {
   ...taskResponseMock,
   status: TaskStatus.COMPLETED,
 };
@@ -59,7 +60,7 @@ export const taskMock = {
   updatedAt: new Date(),
 };
 
-export const taskListResponseMock = [
+export const taskListResponseMock: TaskResponseDto[] = [
   taskResponseMock,
   {
     id: '550e8400-e29b-41d4-a716-446655440002',
