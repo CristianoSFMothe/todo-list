@@ -62,6 +62,14 @@ export class UsersService {
         id: true,
         name: true,
         email: true,
+        tasks: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            status: true,
+          },
+        },
       },
     });
 

@@ -4,6 +4,10 @@ export function createPrismaServiceMock() {
       findUnique: jest.fn(),
       create: jest.fn(),
     },
+    task: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+    },
     $connect: jest.fn().mockResolvedValue(undefined),
     $disconnect: jest.fn().mockResolvedValue(undefined),
   };
