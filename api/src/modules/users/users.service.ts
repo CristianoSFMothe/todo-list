@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -8,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/database/prisma/prisma.service';
 
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 
 @Injectable()
@@ -68,5 +70,49 @@ export class UsersService {
     }
 
     return user;
+  }
+
+  async update(id: string, dto: UpdateUserDto): Promise<UserResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    let hashedPassword: string | undefined;
+
+    if (dto.currentPassword || dto.newPassword) {
+      if (!dto.currentPassword || !dto.newPassword) {
+        throw new BadRequestException(
+          'Both currentPassword and newPassword are required to update password',
+        );
+      }
+
+      const passwordMatch = await bcrypt.compare(
+        dto.currentPassword,
+        user.password,
+      );
+
+      if (!passwordMatch) {
+        throw new BadRequestException('Current password is incorrect');
+      }
+
+      hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        name: dto.name,
+        password: hashedPassword,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
   }
 }
