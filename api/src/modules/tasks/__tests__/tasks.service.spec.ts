@@ -1,4 +1,4 @@
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { createPrismaServiceMock } from '@/database/prisma/__mocks__/prisma.service.mock';
@@ -9,6 +9,7 @@ import {
   createTaskDtoMock,
   createTaskWithStatusDtoMock,
   prismaTaskMock,
+  taskListResponseMock,
   taskMock,
   taskResponseMock,
   taskResponseWithStatusMock,
@@ -84,6 +85,13 @@ describe('TasksService', () => {
           description: true,
           status: true,
           userId: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
         },
       });
       expect(result).toEqual(taskResponseMock);
@@ -116,6 +124,13 @@ describe('TasksService', () => {
           description: true,
           status: true,
           userId: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
         },
       });
       expect(result).toEqual(taskResponseWithStatusMock);
@@ -137,6 +152,83 @@ describe('TasksService', () => {
       );
       expect(prismaTaskMock.findUnique).toHaveBeenCalledTimes(1);
       expect(prismaTaskMock.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findAll', () => {
+    it('should return a list of tasks with user', async () => {
+      // Arrange
+      jest
+        .spyOn(prismaTaskMock, 'findMany')
+        .mockResolvedValue(taskListResponseMock);
+
+      // Act
+      const result = await service.findAll();
+
+      // Assert
+      expect(prismaTaskMock.findMany).toHaveBeenCalledWith({
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          status: true,
+          userId: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+      expect(result).toEqual(taskListResponseMock);
+    });
+  });
+
+  describe('findById', () => {
+    it('should return a task when id exists', async () => {
+      // Arrange
+      jest
+        .spyOn(prismaTaskMock, 'findUnique')
+        .mockResolvedValue(taskResponseMock);
+
+      // Act
+      const result = await service.findById(taskResponseMock.id);
+
+      // Assert
+      expect(prismaTaskMock.findUnique).toHaveBeenCalledWith({
+        where: { id: taskResponseMock.id },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          status: true,
+          userId: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+      expect(result).toEqual(taskResponseMock);
+    });
+
+    it('should throw NotFoundException when id does not exist', async () => {
+      // Arrange
+      jest.spyOn(prismaTaskMock, 'findUnique').mockResolvedValue(null);
+
+      // Act
+      const promise = service.findById('non-existing-id');
+
+      // Assert
+      await expect(promise).rejects.toThrow(
+        new NotFoundException('Task not found'),
+      );
+      expect(prismaTaskMock.findUnique).toHaveBeenCalledTimes(1);
     });
   });
 });
