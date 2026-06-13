@@ -1,6 +1,7 @@
 import { TaskStatus } from 'generated/prisma/client';
 
 import { CreateTaskDto } from '../dto/create-task.dto';
+import { UpdateTaskDto } from '../dto/update-task.dto';
 
 export const createTaskDtoMock: CreateTaskDto = {
   title: 'First task',
@@ -11,6 +12,11 @@ export const createTaskDtoMock: CreateTaskDto = {
 export const createTaskWithStatusDtoMock: CreateTaskDto = {
   ...createTaskDtoMock,
   status: TaskStatus.IN_PROGRESS,
+};
+
+export const updateTaskDtoMock: UpdateTaskDto = {
+  title: 'Updated task',
+  description: 'Updated description',
 };
 
 export const taskResponseMock = {
@@ -30,6 +36,17 @@ export const taskResponseWithStatusMock = {
   ...taskResponseMock,
   title: 'Task in progress',
   status: TaskStatus.IN_PROGRESS,
+};
+
+export const updatedTaskResponseMock = {
+  ...taskResponseMock,
+  title: 'Updated task',
+  description: 'Updated description',
+};
+
+export const completedTaskResponseMock = {
+  ...taskResponseMock,
+  status: TaskStatus.COMPLETED,
 };
 
 export const taskMock = {
@@ -69,6 +86,7 @@ export const prismaTaskMock = {
   findUnique: jest.fn(),
   findMany: jest.fn(),
   create: jest.fn(),
+  update: jest.fn(),
 };
 
 export const usersServiceTaskMock = {
