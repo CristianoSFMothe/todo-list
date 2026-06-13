@@ -27,6 +27,20 @@ export const userResponseMock: UserResponseDto = {
   email: 'johndoe@email.com',
 };
 
+export const userFindByIdResponseMock = {
+  id: 'a3bb189e-8bf9-3888-9912-ace4e6543002',
+  name: 'John Doe',
+  email: 'johndoe@email.com',
+  tasks: [
+    {
+      id: '550e8400-e29b-41d4-a716-446655440001',
+      title: 'First task',
+      description: 'Task description',
+      status: 'PENDING',
+    },
+  ],
+};
+
 export const userResponseListMock: UserResponseDto[] = [
   userResponseMock,
   {

@@ -12,6 +12,7 @@ import {
   createUserDtoMock,
   prismaUserMock,
   updateUserDtoMock,
+  userFindByIdResponseMock,
   userMock,
   userResponseListMock,
   userResponseMock,
@@ -146,21 +147,29 @@ describe('UsersService', () => {
       // Arrange
       jest
         .spyOn(prismaUserMock, 'findUnique')
-        .mockResolvedValue(userResponseMock);
+        .mockResolvedValue(userFindByIdResponseMock);
 
       // Act
-      const result = await service.findById(userResponseMock.id);
+      const result = await service.findById(userFindByIdResponseMock.id);
 
       // Assert
       expect(prismaUserMock.findUnique).toHaveBeenCalledWith({
-        where: { id: userResponseMock.id },
+        where: { id: userFindByIdResponseMock.id },
         select: {
           id: true,
           name: true,
           email: true,
+          tasks: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              status: true,
+            },
+          },
         },
       });
-      expect(result).toEqual(userResponseMock);
+      expect(result).toEqual(userFindByIdResponseMock);
     });
 
     it('should throw NotFoundException when id does not exist', async () => {
@@ -181,13 +190,15 @@ describe('UsersService', () => {
       // Arrange
       jest
         .spyOn(prismaUserMock, 'findUnique')
-        .mockResolvedValue(userResponseMock);
+        .mockResolvedValue(userFindByIdResponseMock);
 
       // Act
-      const result = await service.findById(userResponseMock.id);
+      const result = await service.findById(userFindByIdResponseMock.id);
 
       // Assert
       expect(result).not.toHaveProperty('password');
+      expect(result).toHaveProperty('tasks');
+      expect(result.tasks).toHaveLength(1);
     });
   });
 

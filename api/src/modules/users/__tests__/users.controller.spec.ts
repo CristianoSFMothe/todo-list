@@ -8,6 +8,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   createUserDtoMock,
   updateUserDtoMock,
+  userFindByIdResponseMock,
   userResponseListMock,
   userResponseMock,
   usersServiceMock,
@@ -109,17 +110,17 @@ describe('UsersController', () => {
       // Arrange
       jest
         .spyOn(usersServiceMock, 'findById')
-        .mockResolvedValue(userResponseMock);
+        .mockResolvedValue(userFindByIdResponseMock);
 
       // Act
-      const result = await controller.findById(userResponseMock.id);
+      const result = await controller.findById(userFindByIdResponseMock.id);
 
       // Assert
       expect(usersServiceMock.findById).toHaveBeenCalledWith(
-        userResponseMock.id,
+        userFindByIdResponseMock.id,
       );
       expect(usersServiceMock.findById).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(userResponseMock);
+      expect(result).toEqual(userFindByIdResponseMock);
     });
 
     it('should throw NotFoundException when id does not exist', async () => {
