@@ -23,6 +23,9 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:prisma": "jest src/database/prisma/__tests__/prisma.service.spec.ts",
+    "test:task": "jest src/modules/tasks/__tests__/tasks.service.spec.ts src/modules/tasks/__tests__/tasks.controller.spec.ts",
+    "test:task.service": "jest src/modules/tasks/__tests__/tasks.service.spec.ts",
+    "test:task.controller": "jest src/modules/tasks/__tests__/tasks.controller.spec.ts",
     "test:user": "jest src/modules/users/__tests__/users.service.spec.ts src/modules/users/__tests__/users.controller.spec.ts",
     "test:user.service": "jest src/modules/users/__tests__/users.service.spec.ts",
     "test:user.controller": "jest src/modules/users/__tests__/users.controller.spec.ts"

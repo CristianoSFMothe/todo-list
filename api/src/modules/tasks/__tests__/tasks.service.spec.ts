@@ -1,27 +1,30 @@
+import { ConflictException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { createPrismaServiceMock } from '@/database/prisma/__mocks__/prisma.service.mock';
 import { PrismaService } from '@/database/prisma/prisma.service';
 import { UsersService } from '@/modules/users/users.service';
 
-import { CreateTaskDto } from '../dto/create-task.dto';
+import {
+  createTaskDtoMock,
+  createTaskWithStatusDtoMock,
+  prismaTaskMock,
+  taskMock,
+  taskResponseMock,
+  taskResponseWithStatusMock,
+  taskUserMock,
+  usersServiceTaskMock,
+} from '../__mocks__/task.mock';
 import { TasksService } from '../tasks.service';
 
 describe('TasksService', () => {
   let service: TasksService;
   let prismaServiceMock: ReturnType<typeof createPrismaServiceMock>;
-  let usersServiceMock: { findById: jest.Mock };
-
-  const dto: CreateTaskDto = {
-    title: 'First task',
-    description: 'Task description',
-    userId: '550e8400-e29b-41d4-a716-446655440000',
-  };
 
   beforeEach(async () => {
-    prismaServiceMock = createPrismaServiceMock();
-    usersServiceMock = {
-      findById: jest.fn(),
+    prismaServiceMock = {
+      ...createPrismaServiceMock(),
+      task: prismaTaskMock,
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -33,7 +36,7 @@ describe('TasksService', () => {
         },
         {
           provide: UsersService,
-          useValue: usersServiceMock,
+          useValue: usersServiceTaskMock,
         },
       ],
     }).compile();
@@ -45,72 +48,95 @@ describe('TasksService', () => {
     expect(service).toBeDefined();
   });
 
-  it('creates a task when user exists and title is unique', async () => {
-    usersServiceMock.findById.mockResolvedValue({
-      id: dto.userId,
-      name: 'John Doe',
-      email: 'john@example.com',
-    });
-    prismaServiceMock.task.findUnique.mockResolvedValue(null);
-    prismaServiceMock.task.create.mockResolvedValue({
-      id: 'task-id',
-      title: dto.title,
-      description: dto.description,
-      status: 'PENDING',
-      userId: dto.userId,
-    });
-
-    const result = await service.create(dto);
-
-    expect(usersServiceMock.findById).toHaveBeenCalledWith(dto.userId);
-    expect(prismaServiceMock.task.findUnique).toHaveBeenCalledWith({
-      where: {
-        title: dto.title,
-      },
-    });
-    expect(prismaServiceMock.task.create).toHaveBeenCalledWith({
-      data: {
-        title: dto.title,
-        description: dto.description,
-        status: dto.status,
-        userId: dto.userId,
-      },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        status: true,
-        userId: true,
-      },
-    });
-    expect(result).toEqual({
-      id: 'task-id',
-      title: dto.title,
-      description: dto.description,
-      status: 'PENDING',
-      userId: dto.userId,
-    });
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('throws conflict when task title already exists', async () => {
-    usersServiceMock.findById.mockResolvedValue({
-      id: dto.userId,
-      name: 'John Doe',
-      email: 'john@example.com',
-    });
-    prismaServiceMock.task.findUnique.mockResolvedValue({
-      id: 'task-id',
-      title: dto.title,
-      description: dto.description,
-      status: 'PENDING',
-      userId: dto.userId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  describe('create', () => {
+    it('should create a task successfully', async () => {
+      // Arrange
+      jest
+        .spyOn(usersServiceTaskMock, 'findById')
+        .mockResolvedValue(taskUserMock);
+      jest.spyOn(prismaTaskMock, 'findUnique').mockResolvedValue(null);
+      jest.spyOn(prismaTaskMock, 'create').mockResolvedValue(taskResponseMock);
+
+      // Act
+      const result = await service.create(createTaskDtoMock);
+
+      // Assert
+      expect(usersServiceTaskMock.findById).toHaveBeenCalledWith(
+        createTaskDtoMock.userId,
+      );
+      expect(prismaTaskMock.findUnique).toHaveBeenCalledWith({
+        where: { title: createTaskDtoMock.title },
+      });
+      expect(prismaTaskMock.create).toHaveBeenCalledWith({
+        data: {
+          title: createTaskDtoMock.title,
+          description: createTaskDtoMock.description,
+          status: createTaskDtoMock.status,
+          userId: createTaskDtoMock.userId,
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          status: true,
+          userId: true,
+        },
+      });
+      expect(result).toEqual(taskResponseMock);
     });
 
-    await expect(service.create(dto)).rejects.toThrow(
-      'Task title already exists',
-    );
-    expect(prismaServiceMock.task.create).not.toHaveBeenCalled();
+    it('should create a task with status successfully', async () => {
+      // Arrange
+      jest
+        .spyOn(usersServiceTaskMock, 'findById')
+        .mockResolvedValue(taskUserMock);
+      jest.spyOn(prismaTaskMock, 'findUnique').mockResolvedValue(null);
+      jest
+        .spyOn(prismaTaskMock, 'create')
+        .mockResolvedValue(taskResponseWithStatusMock);
+
+      // Act
+      const result = await service.create(createTaskWithStatusDtoMock);
+
+      // Assert
+      expect(prismaTaskMock.create).toHaveBeenCalledWith({
+        data: {
+          title: createTaskWithStatusDtoMock.title,
+          description: createTaskWithStatusDtoMock.description,
+          status: createTaskWithStatusDtoMock.status,
+          userId: createTaskWithStatusDtoMock.userId,
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          status: true,
+          userId: true,
+        },
+      });
+      expect(result).toEqual(taskResponseWithStatusMock);
+    });
+
+    it('should throw ConflictException when task title already exists', async () => {
+      // Arrange
+      jest
+        .spyOn(usersServiceTaskMock, 'findById')
+        .mockResolvedValue(taskUserMock);
+      jest.spyOn(prismaTaskMock, 'findUnique').mockResolvedValue(taskMock);
+
+      // Act
+      const promise = service.create(createTaskDtoMock);
+
+      // Assert
+      await expect(promise).rejects.toThrow(
+        new ConflictException('Task title already exists'),
+      );
+      expect(prismaTaskMock.findUnique).toHaveBeenCalledTimes(1);
+      expect(prismaTaskMock.create).not.toHaveBeenCalled();
+    });
   });
 });

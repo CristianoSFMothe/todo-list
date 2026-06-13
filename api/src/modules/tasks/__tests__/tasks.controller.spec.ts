@@ -1,18 +1,13 @@
+import { ConflictException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { CreateTaskDto } from '../dto/create-task.dto';
+import { createTaskDtoMock, taskResponseMock } from '../__mocks__/task.mock';
 import { TasksController } from '../tasks.controller';
 import { TasksService } from '../tasks.service';
 
 describe('TasksController', () => {
   let controller: TasksController;
   let tasksService: { create: jest.Mock };
-
-  const dto: CreateTaskDto = {
-    title: 'First task',
-    description: 'Task description',
-    userId: '550e8400-e29b-41d4-a716-446655440000',
-  };
 
   beforeEach(async () => {
     tasksService = {
@@ -32,28 +27,40 @@ describe('TasksController', () => {
     controller = module.get<TasksController>(TasksController);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
 
-  it('delegates task creation to the service', async () => {
-    tasksService.create.mockResolvedValue({
-      id: 'task-id',
-      title: dto.title,
-      description: dto.description,
-      status: 'PENDING',
-      userId: dto.userId,
-    });
+  it('should create a task successfully', async () => {
+    // Arrange
+    jest.spyOn(tasksService, 'create').mockResolvedValue(taskResponseMock);
 
-    const result = await controller.create(dto);
+    // Act
+    const result = await controller.create(createTaskDtoMock);
 
-    expect(tasksService.create).toHaveBeenCalledWith(dto);
-    expect(result).toEqual({
-      id: 'task-id',
-      title: dto.title,
-      description: dto.description,
-      status: 'PENDING',
-      userId: dto.userId,
-    });
+    // Assert
+    expect(tasksService.create).toHaveBeenCalledWith(createTaskDtoMock);
+    expect(tasksService.create).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(taskResponseMock);
+  });
+
+  it('should throw ConflictException when task title already exists', async () => {
+    // Arrange
+    jest
+      .spyOn(tasksService, 'create')
+      .mockRejectedValue(new ConflictException('Task title already exists'));
+
+    // Act
+    const promise = controller.create(createTaskDtoMock);
+
+    // Assert
+    await expect(promise).rejects.toThrow(
+      new ConflictException('Task title already exists'),
+    );
+    expect(tasksService.create).toHaveBeenCalledTimes(1);
   });
 });
