@@ -15,6 +15,7 @@ import {
   createTaskDtoMock,
   createTaskWithStatusDtoMock,
   prismaTaskMock,
+  removeTaskResponseMock,
   taskListResponseMock,
   taskMock,
   taskResponseMock,
@@ -53,8 +54,10 @@ describe('TasksService', () => {
     service = module.get<TasksService>(TasksService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  describe('service', () => {
+    it('should be defined', () => {
+      expect(service).toBeDefined();
+    });
   });
 
   afterEach(() => {
@@ -401,6 +404,72 @@ describe('TasksService', () => {
         new NotFoundException('Task not found'),
       );
       expect(prismaTaskMock.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('remove', () => {
+    it('should delete a task successfully and return a message', async () => {
+      // Arrange
+      jest
+        .spyOn(prismaTaskMock, 'findUnique')
+        .mockResolvedValue(taskResponseMock);
+      jest.spyOn(prismaTaskMock, 'delete').mockResolvedValue(taskMock);
+
+      // Act
+      const result = await service.remove(taskResponseMock.id);
+
+      // Assert
+      expect(prismaTaskMock.findUnique).toHaveBeenCalledWith({
+        where: { id: taskResponseMock.id },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          status: true,
+          userId: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+      expect(prismaTaskMock.delete).toHaveBeenCalledWith({
+        where: { id: taskResponseMock.id },
+      });
+      expect(result).toEqual(removeTaskResponseMock);
+    });
+
+    it('should throw BadRequestException when task status is COMPLETED', async () => {
+      // Arrange
+      jest
+        .spyOn(prismaTaskMock, 'findUnique')
+        .mockResolvedValue(completedTaskResponseMock);
+
+      // Act
+      const promise = service.remove(completedTaskResponseMock.id);
+
+      // Assert
+      await expect(promise).rejects.toThrow(
+        new BadRequestException('Completed tasks cannot be deleted'),
+      );
+      expect(prismaTaskMock.delete).not.toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException when task does not exist', async () => {
+      // Arrange
+      jest.spyOn(prismaTaskMock, 'findUnique').mockResolvedValue(null);
+
+      // Act
+      const promise = service.remove('non-existing-id');
+
+      // Assert
+      await expect(promise).rejects.toThrow(
+        new NotFoundException('Task not found'),
+      );
+      expect(prismaTaskMock.delete).not.toHaveBeenCalled();
     });
   });
 });

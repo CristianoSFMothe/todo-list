@@ -76,6 +76,10 @@ export const taskListResponseMock: TaskResponseDto[] = [
   },
 ];
 
+export const removeTaskResponseMock = {
+  message: 'Task successfully deleted',
+};
+
 export const taskUserMock = {
   id: '550e8400-e29b-41d4-a716-446655440000',
   name: 'John Doe',
@@ -88,6 +92,7 @@ export const prismaTaskMock = {
   findMany: jest.fn(),
   create: jest.fn(),
   update: jest.fn(),
+  delete: jest.fn(),
 };
 
 export const usersServiceTaskMock = {

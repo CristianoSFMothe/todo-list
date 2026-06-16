@@ -180,4 +180,18 @@ export class TasksService {
       },
     });
   }
+
+  async remove(id: string): Promise<{ message: string }> {
+    const task = await this.findById(id);
+
+    if (task.status === TaskStatus.COMPLETED) {
+      throw new BadRequestException('Completed tasks cannot be deleted');
+    }
+
+    await this.prisma.task.delete({
+      where: { id },
+    });
+
+    return { message: 'Task successfully deleted' };
+  }
 }

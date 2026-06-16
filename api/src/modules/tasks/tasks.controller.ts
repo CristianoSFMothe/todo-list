@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -45,5 +46,10 @@ export class TasksController {
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<TaskResponseDto> {
     return this.tasksService.updateStatus(id);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseUUIDPipe) id: string): Promise<{ message: string }> {
+    return this.tasksService.remove(id);
   }
 }
