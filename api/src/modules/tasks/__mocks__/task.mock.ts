@@ -4,10 +4,11 @@ import { CreateTaskDto } from '../dto/create-task.dto';
 import { TaskResponseDto } from '../dto/task-response.dto';
 import { UpdateTaskDto } from '../dto/update-task.dto';
 
+export const userIdMock = '550e8400-e29b-41d4-a716-446655440000';
+
 export const createTaskDtoMock: CreateTaskDto = {
   title: 'First task',
   description: 'Task description',
-  userId: '550e8400-e29b-41d4-a716-446655440000',
 };
 
 export const createTaskWithStatusDtoMock: CreateTaskDto = {
@@ -80,21 +81,10 @@ export const removeTaskResponseMock = {
   message: 'Task successfully deleted',
 };
 
-export const taskUserMock = {
-  id: '550e8400-e29b-41d4-a716-446655440000',
-  name: 'John Doe',
-  email: 'john@example.com',
-  tasks: [],
-};
-
 export const prismaTaskMock = {
-  findUnique: jest.fn(),
+  findFirst: jest.fn(),
   findMany: jest.fn(),
   create: jest.fn(),
   update: jest.fn(),
   delete: jest.fn(),
-};
-
-export const usersServiceTaskMock = {
-  findById: jest.fn(),
 };

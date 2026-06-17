@@ -14,7 +14,6 @@ import {
   updateUserDtoMock,
   userFindByIdResponseMock,
   userMock,
-  userResponseListMock,
   userResponseMock,
 } from '../__mocks__/user.mock';
 import { UsersService } from '../users.service';
@@ -110,35 +109,6 @@ describe('UsersService', () => {
 
       // Assert
       expect(result).not.toHaveProperty('password');
-    });
-  });
-
-  describe('findAll', () => {
-    it('should return a list of users', async () => {
-      // Arrange
-      jest
-        .spyOn(prismaUserMock, 'findMany')
-        .mockResolvedValue(userResponseListMock);
-
-      // Act
-      const result = await service.findAll();
-
-      // Assert
-      expect(prismaUserMock.findMany).toHaveBeenCalledTimes(1);
-      expect(result).toHaveLength(3);
-      expect(result).toEqual(userResponseListMock);
-    });
-
-    it('should return an empty list when there are no users', async () => {
-      // Arrange
-      jest.spyOn(prismaUserMock, 'findMany').mockResolvedValue([]);
-
-      // Act
-      const result = await service.findAll();
-
-      // Assert
-      expect(prismaUserMock.findMany).toHaveBeenCalledTimes(1);
-      expect(result).toEqual([]);
     });
   });
 

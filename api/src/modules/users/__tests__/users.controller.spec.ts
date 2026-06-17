@@ -5,16 +5,21 @@ import {
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import type { AuthenticatedUser } from '../../auth/decorators/current-user.decorator';
 import {
   createUserDtoMock,
   updateUserDtoMock,
   userFindByIdResponseMock,
-  userResponseListMock,
   userResponseMock,
   usersServiceMock,
 } from '../__mocks__/user.mock';
 import { UsersController } from '../users.controller';
 import { UsersService } from '../users.service';
+
+const currentUserMock: AuthenticatedUser = {
+  id: userFindByIdResponseMock.id,
+  email: userFindByIdResponseMock.email,
+};
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -76,61 +81,32 @@ describe('UsersController', () => {
     });
   });
 
-  describe('findAll', () => {
-    it('should return a list of users', async () => {
-      // Arrange
-      jest
-        .spyOn(usersServiceMock, 'findAll')
-        .mockResolvedValue(userResponseListMock);
-
-      // Act
-      const result = await controller.findAll();
-
-      // Assert
-      expect(usersServiceMock.findAll).toHaveBeenCalledTimes(1);
-      expect(result).toHaveLength(3);
-      expect(result).toEqual(userResponseListMock);
-    });
-
-    it('should return an empty list when there are no users', async () => {
-      // Arrange
-      jest.spyOn(usersServiceMock, 'findAll').mockResolvedValue([]);
-
-      // Act
-      const result = await controller.findAll();
-
-      // Assert
-      expect(usersServiceMock.findAll).toHaveBeenCalledTimes(1);
-      expect(result).toEqual([]);
-    });
-  });
-
-  describe('findById', () => {
-    it('should return a user when id exists', async () => {
+  describe('getProfile', () => {
+    it('should return the authenticated user profile', async () => {
       // Arrange
       jest
         .spyOn(usersServiceMock, 'findById')
         .mockResolvedValue(userFindByIdResponseMock);
 
       // Act
-      const result = await controller.findById(userFindByIdResponseMock.id);
+      const result = await controller.getProfile(currentUserMock);
 
       // Assert
       expect(usersServiceMock.findById).toHaveBeenCalledWith(
-        userFindByIdResponseMock.id,
+        currentUserMock.id,
       );
       expect(usersServiceMock.findById).toHaveBeenCalledTimes(1);
       expect(result).toEqual(userFindByIdResponseMock);
     });
 
-    it('should throw NotFoundException when id does not exist', async () => {
+    it('should throw NotFoundException when user does not exist', async () => {
       // Arrange
       jest
         .spyOn(usersServiceMock, 'findById')
         .mockRejectedValue(new NotFoundException('User not found'));
 
       // Act
-      const promise = controller.findById('non-existing-id');
+      const promise = controller.getProfile(currentUserMock);
 
       // Assert
       await expect(promise).rejects.toThrow(
@@ -149,13 +125,13 @@ describe('UsersController', () => {
 
       // Act
       const result = await controller.update(
-        userResponseMock.id,
+        currentUserMock,
         updateUserDtoMock,
       );
 
       // Assert
       expect(usersServiceMock.update).toHaveBeenCalledWith(
-        userResponseMock.id,
+        currentUserMock.id,
         updateUserDtoMock,
       );
       expect(usersServiceMock.update).toHaveBeenCalledTimes(1);
@@ -169,7 +145,7 @@ describe('UsersController', () => {
         .mockRejectedValue(new NotFoundException('User not found'));
 
       // Act
-      const promise = controller.update('non-existing-id', updateUserDtoMock);
+      const promise = controller.update(currentUserMock, updateUserDtoMock);
 
       // Assert
       await expect(promise).rejects.toThrow(
@@ -189,7 +165,7 @@ describe('UsersController', () => {
         );
 
       // Act
-      const promise = controller.update(userResponseMock.id, {
+      const promise = controller.update(currentUserMock, {
         currentPassword: 'password123',
       });
 
@@ -211,7 +187,7 @@ describe('UsersController', () => {
         );
 
       // Act
-      const promise = controller.update(userResponseMock.id, updateUserDtoMock);
+      const promise = controller.update(currentUserMock, updateUserDtoMock);
 
       // Assert
       await expect(promise).rejects.toThrow(

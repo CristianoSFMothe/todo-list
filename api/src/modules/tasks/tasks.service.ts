@@ -7,24 +7,37 @@ import {
 import { TaskStatus } from 'generated/prisma/client';
 
 import { PrismaService } from '@/database/prisma/prisma.service';
-import { UsersService } from '@/modules/users/users.service';
 
 import { CreateTaskDto } from './dto/create-task.dto';
 import { TaskResponseDto } from './dto/task-response.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 
+const taskSelect = {
+  id: true,
+  title: true,
+  description: true,
+  status: true,
+  userId: true,
+  user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  },
+} as const;
+
 @Injectable()
 export class TasksService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly usersService: UsersService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(createTaskDto: CreateTaskDto): Promise<TaskResponseDto> {
-    await this.usersService.findById(createTaskDto.userId);
-
-    const taskAlreadyExists = await this.prisma.task.findUnique({
+  async create(
+    userId: string,
+    createTaskDto: CreateTaskDto,
+  ): Promise<TaskResponseDto> {
+    const taskAlreadyExists = await this.prisma.task.findFirst({
       where: {
+        userId,
         title: createTaskDto.title,
       },
     });
@@ -38,61 +51,23 @@ export class TasksService {
         title: createTaskDto.title,
         description: createTaskDto.description,
         status: createTaskDto.status,
-        userId: createTaskDto.userId,
+        userId,
       },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        status: true,
-        userId: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      select: taskSelect,
     });
   }
 
-  async findAll(): Promise<TaskResponseDto[]> {
+  async findAll(userId: string): Promise<TaskResponseDto[]> {
     return this.prisma.task.findMany({
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        status: true,
-        userId: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      where: { userId },
+      select: taskSelect,
     });
   }
 
-  async findById(id: string): Promise<TaskResponseDto> {
-    const task = await this.prisma.task.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        status: true,
-        userId: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+  async findById(id: string, userId: string): Promise<TaskResponseDto> {
+    const task = await this.prisma.task.findFirst({
+      where: { id, userId },
+      select: taskSelect,
     });
 
     if (!task) {
@@ -104,13 +79,15 @@ export class TasksService {
 
   async update(
     id: string,
+    userId: string,
     updateTaskDto: UpdateTaskDto,
   ): Promise<TaskResponseDto> {
-    const task = await this.findById(id);
+    const task = await this.findById(id, userId);
 
     if (updateTaskDto.title && updateTaskDto.title !== task.title) {
-      const taskAlreadyExists = await this.prisma.task.findUnique({
+      const taskAlreadyExists = await this.prisma.task.findFirst({
         where: {
+          userId,
           title: updateTaskDto.title,
         },
       });
@@ -127,25 +104,12 @@ export class TasksService {
         description: updateTaskDto.description,
         status: updateTaskDto.status,
       },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        status: true,
-        userId: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      select: taskSelect,
     });
   }
 
-  async updateStatus(id: string): Promise<TaskResponseDto> {
-    const task = await this.findById(id);
+  async updateStatus(id: string, userId: string): Promise<TaskResponseDto> {
+    const task = await this.findById(id, userId);
 
     const nextStatus: Record<TaskStatus, TaskStatus | null> = {
       [TaskStatus.PENDING]: TaskStatus.IN_PROGRESS,
@@ -164,25 +128,12 @@ export class TasksService {
       data: {
         status: next,
       },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        status: true,
-        userId: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
+      select: taskSelect,
     });
   }
 
-  async remove(id: string): Promise<{ message: string }> {
-    const task = await this.findById(id);
+  async remove(id: string, userId: string): Promise<{ message: string }> {
+    const task = await this.findById(id, userId);
 
     if (task.status === TaskStatus.COMPLETED) {
       throw new BadRequestException('Completed tasks cannot be deleted');

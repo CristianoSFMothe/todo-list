@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import type { AuthenticatedUser } from '../../auth/decorators/current-user.decorator';
 import {
   completedTaskResponseMock,
   createTaskDtoMock,
@@ -14,9 +15,15 @@ import {
   taskResponseWithStatusMock,
   updatedTaskResponseMock,
   updateTaskDtoMock,
+  userIdMock,
 } from '../__mocks__/task.mock';
 import { TasksController } from '../tasks.controller';
 import { TasksService } from '../tasks.service';
+
+const currentUserMock: AuthenticatedUser = {
+  id: userIdMock,
+  email: 'john@example.com',
+};
 
 describe('TasksController', () => {
   let controller: TasksController;
@@ -68,10 +75,16 @@ describe('TasksController', () => {
       jest.spyOn(tasksService, 'create').mockResolvedValue(taskResponseMock);
 
       // Act
-      const result = await controller.create(createTaskDtoMock);
+      const result = await controller.create(
+        currentUserMock,
+        createTaskDtoMock,
+      );
 
       // Assert
-      expect(tasksService.create).toHaveBeenCalledWith(createTaskDtoMock);
+      expect(tasksService.create).toHaveBeenCalledWith(
+        currentUserMock.id,
+        createTaskDtoMock,
+      );
       expect(tasksService.create).toHaveBeenCalledTimes(1);
       expect(result).toEqual(taskResponseMock);
     });
@@ -83,7 +96,7 @@ describe('TasksController', () => {
         .mockRejectedValue(new ConflictException('Task title already exists'));
 
       // Act
-      const promise = controller.create(createTaskDtoMock);
+      const promise = controller.create(currentUserMock, createTaskDtoMock);
 
       // Assert
       await expect(promise).rejects.toThrow(
@@ -101,9 +114,10 @@ describe('TasksController', () => {
         .mockResolvedValue(taskListResponseMock);
 
       // Act
-      const result = await controller.findAll();
+      const result = await controller.findAll(currentUserMock);
 
       // Assert
+      expect(tasksService.findAll).toHaveBeenCalledWith(currentUserMock.id);
       expect(tasksService.findAll).toHaveBeenCalledTimes(1);
       expect(result).toEqual(taskListResponseMock);
     });
@@ -115,10 +129,16 @@ describe('TasksController', () => {
       jest.spyOn(tasksService, 'findById').mockResolvedValue(taskResponseMock);
 
       // Act
-      const result = await controller.findById(taskResponseMock.id);
+      const result = await controller.findById(
+        currentUserMock,
+        taskResponseMock.id,
+      );
 
       // Assert
-      expect(tasksService.findById).toHaveBeenCalledWith(taskResponseMock.id);
+      expect(tasksService.findById).toHaveBeenCalledWith(
+        taskResponseMock.id,
+        currentUserMock.id,
+      );
       expect(result).toEqual(taskResponseMock);
     });
 
@@ -129,7 +149,7 @@ describe('TasksController', () => {
         .mockRejectedValue(new NotFoundException('Task not found'));
 
       // Act
-      const promise = controller.findById('non-existing-id');
+      const promise = controller.findById(currentUserMock, 'non-existing-id');
 
       // Assert
       await expect(promise).rejects.toThrow(
@@ -148,6 +168,7 @@ describe('TasksController', () => {
 
       // Act
       const result = await controller.update(
+        currentUserMock,
         taskResponseMock.id,
         updateTaskDtoMock,
       );
@@ -155,6 +176,7 @@ describe('TasksController', () => {
       // Assert
       expect(tasksService.update).toHaveBeenCalledWith(
         taskResponseMock.id,
+        currentUserMock.id,
         updateTaskDtoMock,
       );
       expect(result).toEqual(updatedTaskResponseMock);
@@ -169,11 +191,15 @@ describe('TasksController', () => {
         .mockResolvedValue(taskResponseWithStatusMock);
 
       // Act
-      const result = await controller.updateStatus(taskResponseMock.id);
+      const result = await controller.updateStatus(
+        currentUserMock,
+        taskResponseMock.id,
+      );
 
       // Assert
       expect(tasksService.updateStatus).toHaveBeenCalledWith(
         taskResponseMock.id,
+        currentUserMock.id,
       );
       expect(result).toEqual(taskResponseWithStatusMock);
     });
@@ -187,10 +213,16 @@ describe('TasksController', () => {
         .mockResolvedValue(removeTaskResponseMock);
 
       // Act
-      const result = await controller.remove(taskResponseMock.id);
+      const result = await controller.remove(
+        currentUserMock,
+        taskResponseMock.id,
+      );
 
       // Assert
-      expect(tasksService.remove).toHaveBeenCalledWith(taskResponseMock.id);
+      expect(tasksService.remove).toHaveBeenCalledWith(
+        taskResponseMock.id,
+        currentUserMock.id,
+      );
       expect(tasksService.remove).toHaveBeenCalledTimes(1);
       expect(result).toEqual(removeTaskResponseMock);
     });
@@ -204,7 +236,10 @@ describe('TasksController', () => {
         );
 
       // Act
-      const promise = controller.remove(completedTaskResponseMock.id);
+      const promise = controller.remove(
+        currentUserMock,
+        completedTaskResponseMock.id,
+      );
 
       // Assert
       await expect(promise).rejects.toThrow(
@@ -220,7 +255,7 @@ describe('TasksController', () => {
         .mockRejectedValue(new NotFoundException('Task not found'));
 
       // Act
-      const promise = controller.remove('non-existing-id');
+      const promise = controller.remove(currentUserMock, 'non-existing-id');
 
       // Assert
       await expect(promise).rejects.toThrow(

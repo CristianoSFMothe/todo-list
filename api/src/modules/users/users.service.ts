@@ -51,16 +51,6 @@ export class UsersService {
     });
   }
 
-  async findAll(): Promise<UserResponseDto[]> {
-    return this.prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-      },
-    });
-  }
-
   async findById(id: string): Promise<UserResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { id },

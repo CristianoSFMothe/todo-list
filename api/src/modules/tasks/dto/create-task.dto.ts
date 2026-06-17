@@ -1,10 +1,4 @@
-import {
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  IsUUID,
-} from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { TaskStatus } from 'generated/prisma/client';
 
 export class CreateTaskDto {
@@ -19,8 +13,4 @@ export class CreateTaskDto {
   @IsOptional()
   @IsEnum(TaskStatus, { message: 'Status is invalid' })
   status?: TaskStatus;
-
-  @IsNotEmpty({ message: 'User ID is required' })
-  @IsUUID('4', { message: 'User ID must be a valid UUID' })
-  userId!: string;
 }

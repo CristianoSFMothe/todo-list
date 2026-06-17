@@ -21,7 +21,7 @@ model User {
 
 model Task {
   id          String     @id @default(uuid()) @db.Uuid
-  title       String     @unique
+  title       String
   description String?
   status      TaskStatus @default(PENDING)
   userId      String     @map("user_id") @db.Uuid
@@ -29,6 +29,7 @@ model Task {
   updatedAt   DateTime   @updatedAt @map("updated_at")
   user        User       @relation(fields: [userId], references: [id])
 
+  @@unique([userId, title])
   @@map("tasks")
 }
 

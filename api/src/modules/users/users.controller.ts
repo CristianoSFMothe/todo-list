@@ -1,13 +1,9 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseUUIDPipe,
-  Patch,
-  Post,
-} from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post } from '@nestjs/common';
 
+import {
+  type AuthenticatedUser,
+  CurrentUser,
+} from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -24,21 +20,16 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @Get()
-  findAll(): Promise<UserResponseDto[]> {
-    return this.usersService.findAll();
+  @Get('me')
+  getProfile(@CurrentUser() user: AuthenticatedUser): Promise<UserResponseDto> {
+    return this.usersService.findById(user.id);
   }
 
-  @Get(':id')
-  findById(@Param('id', ParseUUIDPipe) id: string): Promise<UserResponseDto> {
-    return this.usersService.findById(id);
-  }
-
-  @Patch(':id')
+  @Patch('me')
   update(
-    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserResponseDto> {
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(user.id, updateUserDto);
   }
 }
