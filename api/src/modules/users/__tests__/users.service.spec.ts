@@ -4,12 +4,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import * as bcrypt from 'bcrypt';
 
 import { PrismaService } from '@/database/prisma/prisma.service';
+import { HashingService } from '@/shared/hashing/hashing.service';
 
 import {
   createUserDtoMock,
+  hashingServiceMock,
   prismaUserMock,
   updateUserDtoMock,
   userFindByIdResponseMock,
@@ -17,8 +18,6 @@ import {
   userResponseMock,
 } from '../__mocks__/user.mock';
 import { UsersService } from '../users.service';
-
-jest.mock('bcrypt');
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -34,6 +33,10 @@ describe('UsersService', () => {
         {
           provide: PrismaService,
           useValue: prismaServiceMock,
+        },
+        {
+          provide: HashingService,
+          useValue: hashingServiceMock,
         },
       ],
     }).compile();
@@ -56,7 +59,7 @@ describe('UsersService', () => {
       // Arrange
       jest.spyOn(prismaUserMock, 'findUnique').mockResolvedValue(null);
       jest.spyOn(prismaUserMock, 'create').mockResolvedValue(userResponseMock);
-      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed_password');
+      hashingServiceMock.hash.mockResolvedValue('hashed_password');
 
       // Act
       const result = await service.create(createUserDtoMock);
@@ -65,7 +68,9 @@ describe('UsersService', () => {
       expect(prismaUserMock.findUnique).toHaveBeenCalledWith({
         where: { email: createUserDtoMock.email },
       });
-      expect(bcrypt.hash).toHaveBeenCalledWith(createUserDtoMock.password, 10);
+      expect(hashingServiceMock.hash).toHaveBeenCalledWith(
+        createUserDtoMock.password,
+      );
       expect(prismaUserMock.create).toHaveBeenCalledWith({
         data: {
           name: createUserDtoMock.name,
@@ -102,7 +107,7 @@ describe('UsersService', () => {
       // Arrange
       jest.spyOn(prismaUserMock, 'findUnique').mockResolvedValue(null);
       jest.spyOn(prismaUserMock, 'create').mockResolvedValue(userResponseMock);
-      jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed_password' as never);
+      hashingServiceMock.hash.mockResolvedValue('hashed_password');
 
       // Act
       const result = await service.create(createUserDtoMock);
@@ -209,20 +214,19 @@ describe('UsersService', () => {
       // Arrange
       jest.spyOn(prismaUserMock, 'findUnique').mockResolvedValue(userMock);
       jest.spyOn(prismaUserMock, 'update').mockResolvedValue(userResponseMock);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      (bcrypt.hash as jest.Mock).mockResolvedValue('new_hashed_password');
+      hashingServiceMock.compare.mockResolvedValue(true);
+      hashingServiceMock.hash.mockResolvedValue('new_hashed_password');
 
       // Act
       const result = await service.update(userMock.id, updateUserDtoMock);
 
       // Assert
-      expect(bcrypt.compare).toHaveBeenCalledWith(
+      expect(hashingServiceMock.compare).toHaveBeenCalledWith(
         updateUserDtoMock.currentPassword,
         userMock.password,
       );
-      expect(bcrypt.hash).toHaveBeenCalledWith(
+      expect(hashingServiceMock.hash).toHaveBeenCalledWith(
         updateUserDtoMock.newPassword,
-        10,
       );
       expect(prismaUserMock.update).toHaveBeenCalledWith({
         where: { id: userMock.id },
@@ -292,7 +296,7 @@ describe('UsersService', () => {
     it('should throw BadRequestException when current password is incorrect', async () => {
       // Arrange
       jest.spyOn(prismaUserMock, 'findUnique').mockResolvedValue(userMock);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+      hashingServiceMock.compare.mockResolvedValue(false);
 
       // Act
       const promise = service.update(userMock.id, updateUserDtoMock);
@@ -308,8 +312,8 @@ describe('UsersService', () => {
       // Arrange
       jest.spyOn(prismaUserMock, 'findUnique').mockResolvedValue(userMock);
       jest.spyOn(prismaUserMock, 'update').mockResolvedValue(userResponseMock);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      (bcrypt.hash as jest.Mock).mockResolvedValue('new_hashed_password');
+      hashingServiceMock.compare.mockResolvedValue(true);
+      hashingServiceMock.hash.mockResolvedValue('new_hashed_password');
 
       // Act
       const result = await service.update(userMock.id, updateUserDtoMock);

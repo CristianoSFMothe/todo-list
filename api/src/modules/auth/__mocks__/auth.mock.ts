@@ -30,6 +30,11 @@ export const jwtServiceMock = {
   signAsync: jest.fn(),
 };
 
+export const hashingServiceMock = {
+  hash: jest.fn(),
+  compare: jest.fn(),
+};
+
 export const authServiceMock = {
   login: jest.fn(),
 };

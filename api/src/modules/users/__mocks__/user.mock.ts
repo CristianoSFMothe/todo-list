@@ -47,6 +47,11 @@ export const prismaUserMock = {
   update: jest.fn(),
 };
 
+export const hashingServiceMock = {
+  hash: jest.fn(),
+  compare: jest.fn(),
+};
+
 export const usersServiceMock = {
   create: jest.fn(),
   findById: jest.fn(),

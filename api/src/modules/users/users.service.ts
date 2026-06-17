@@ -4,9 +4,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
 
 import { PrismaService } from '@/database/prisma/prisma.service';
+import { HashingService } from '@/shared/hashing/hashing.service';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -14,7 +14,10 @@ import { UserResponseDto } from './dto/user-response.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly hashingService: HashingService,
+  ) {}
 
   async create(dto: CreateUserDto): Promise<UserResponseDto> {
     const emailAlreadyExists = await this.prisma.user.findUnique({
@@ -27,7 +30,7 @@ export class UsersService {
       throw new ConflictException('Email already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const hashedPassword = await this.hashingService.hash(dto.password);
 
     const user = await this.prisma.user.create({
       data: {
@@ -94,7 +97,7 @@ export class UsersService {
         );
       }
 
-      const passwordMatch = await bcrypt.compare(
+      const passwordMatch = await this.hashingService.compare(
         dto.currentPassword,
         user.password,
       );
@@ -103,7 +106,7 @@ export class UsersService {
         throw new BadRequestException('Current password is incorrect');
       }
 
-      hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+      hashedPassword = await this.hashingService.hash(dto.newPassword);
     }
 
     return this.prisma.user.update({

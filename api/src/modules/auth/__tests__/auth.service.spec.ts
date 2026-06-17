@@ -1,20 +1,19 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import * as bcrypt from 'bcrypt';
 
 import { UsersService } from '@/modules/users/users.service';
+import { HashingService } from '@/shared/hashing/hashing.service';
 
 import {
   authResponseMock,
+  hashingServiceMock,
   jwtServiceMock,
   loginDtoMock,
   userMock,
   usersServiceMock,
 } from '../__mocks__/auth.mock';
 import { AuthService } from '../auth.service';
-
-jest.mock('bcrypt');
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -30,6 +29,10 @@ describe('AuthService', () => {
         {
           provide: JwtService,
           useValue: jwtServiceMock,
+        },
+        {
+          provide: HashingService,
+          useValue: hashingServiceMock,
         },
       ],
     }).compile();
@@ -51,7 +54,7 @@ describe('AuthService', () => {
     it('should authenticate and return an access token with user data', async () => {
       // Arrange
       jest.spyOn(usersServiceMock, 'findByEmail').mockResolvedValue(userMock);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      hashingServiceMock.compare.mockResolvedValue(true);
       jest
         .spyOn(jwtServiceMock, 'signAsync')
         .mockResolvedValue(authResponseMock.accessToken);
@@ -63,7 +66,7 @@ describe('AuthService', () => {
       expect(usersServiceMock.findByEmail).toHaveBeenCalledWith(
         loginDtoMock.email,
       );
-      expect(bcrypt.compare).toHaveBeenCalledWith(
+      expect(hashingServiceMock.compare).toHaveBeenCalledWith(
         loginDtoMock.password,
         userMock.password,
       );
@@ -85,14 +88,14 @@ describe('AuthService', () => {
       await expect(promise).rejects.toThrow(
         new UnauthorizedException('Invalid credentials'),
       );
-      expect(bcrypt.compare).not.toHaveBeenCalled();
+      expect(hashingServiceMock.compare).not.toHaveBeenCalled();
       expect(jwtServiceMock.signAsync).not.toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException when password does not match', async () => {
       // Arrange
       jest.spyOn(usersServiceMock, 'findByEmail').mockResolvedValue(userMock);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+      hashingServiceMock.compare.mockResolvedValue(false);
 
       // Act
       const promise = service.login(loginDtoMock);
@@ -107,7 +110,7 @@ describe('AuthService', () => {
     it('should not return the password in the response', async () => {
       // Arrange
       jest.spyOn(usersServiceMock, 'findByEmail').mockResolvedValue(userMock);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      hashingServiceMock.compare.mockResolvedValue(true);
       jest
         .spyOn(jwtServiceMock, 'signAsync')
         .mockResolvedValue(authResponseMock.accessToken);
