@@ -1,5 +1,15 @@
 import { Body, Controller, Get, Patch, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+
+import { BadRequestSwagger } from '@/helps/swagger/bad-request.swagger';
+import { ConflictSwagger } from '@/helps/swagger/conflict.swagger';
+import { NotFoundSwagger } from '@/helps/swagger/not-found.swagger';
+import { UnauthorizedSwagger } from '@/helps/swagger/unauthorized.swagger';
 
 import {
   type AuthenticatedUser,
@@ -19,16 +29,43 @@ export class UsersController {
 
   @Public()
   @Post()
+  @ApiCreatedResponse({
+    type: UserResponseDto,
+    description: 'User successfully created',
+  })
+  @ConflictSwagger('Email already exists', 'Email already in use', '/users')
+  @BadRequestSwagger(
+    ['property teste should not exist'],
+    'Request validation failed',
+    '/users',
+  )
   create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
     return this.usersService.create(createUserDto);
   }
 
   @Get('me')
+  @ApiOkResponse({
+    type: UserResponseDto,
+    description: 'Authenticated user profile',
+  })
+  @UnauthorizedSwagger('Unauthorized', 'Missing or invalid token', '/users/me')
+  @NotFoundSwagger('User not found', 'User not found', '/users/me')
   getProfile(@CurrentUser() user: AuthenticatedUser): Promise<UserResponseDto> {
     return this.usersService.findById(user.id);
   }
 
   @Patch('me')
+  @ApiOkResponse({
+    type: UserResponseDto,
+    description: 'User successfully updated',
+  })
+  @UnauthorizedSwagger('Unauthorized', 'Missing or invalid token', '/users/me')
+  @NotFoundSwagger('User not found', 'User not found', '/users/me')
+  @BadRequestSwagger(
+    'Both currentPassword and newPassword are required to update password',
+    'Password update validation failed',
+    '/users/me',
+  )
   update(
     @CurrentUser() user: AuthenticatedUser,
     @Body() updateUserDto: UpdateUserDto,
