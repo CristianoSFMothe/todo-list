@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 
 import { PrismaService } from '@/database/prisma/prisma.service';
+import { USER_MESSAGES } from '@/helps/messages';
 import { HashingService } from '@/shared/hashing/hashing.service';
 
 import { CreateUserDto } from './dto/create-user.dto';
@@ -27,7 +28,7 @@ export class UsersService {
     });
 
     if (emailAlreadyExists) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException(USER_MESSAGES.EMAIL_ALREADY_EXISTS);
     }
 
     const hashedPassword = await this.hashingService.hash(dto.password);
@@ -73,7 +74,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(USER_MESSAGES.NOT_FOUND);
     }
 
     return user;
@@ -85,16 +86,14 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(USER_MESSAGES.NOT_FOUND);
     }
 
     let hashedPassword: string | undefined;
 
     if (dto.currentPassword || dto.newPassword) {
       if (!dto.currentPassword || !dto.newPassword) {
-        throw new BadRequestException(
-          'Both currentPassword and newPassword are required to update password',
-        );
+        throw new BadRequestException(USER_MESSAGES.PASSWORD_BOTH_REQUIRED);
       }
 
       const passwordMatch = await this.hashingService.compare(
@@ -103,7 +102,7 @@ export class UsersService {
       );
 
       if (!passwordMatch) {
-        throw new BadRequestException('Current password is incorrect');
+        throw new BadRequestException(USER_MESSAGES.CURRENT_PASSWORD_INCORRECT);
       }
 
       hashedPassword = await this.hashingService.hash(dto.newPassword);

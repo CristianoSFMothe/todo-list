@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
+import { AUTH_MESSAGES } from '@/helps/messages';
 import { UsersService } from '@/modules/users/users.service';
 import { HashingService } from '@/shared/hashing/hashing.service';
 
@@ -20,7 +21,7 @@ export class AuthService {
     const user = await this.usersService.findByEmail(dto.email);
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(AUTH_MESSAGES.INVALID_CREDENTIALS);
     }
 
     const passwordMatch = await this.hashingService.compare(
@@ -29,7 +30,7 @@ export class AuthService {
     );
 
     if (!passwordMatch) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(AUTH_MESSAGES.INVALID_CREDENTIALS);
     }
 
     const payload: JwtPayload = { sub: user.id, email: user.email };

@@ -7,6 +7,7 @@ import {
 import { TaskStatus } from 'generated/prisma/client';
 
 import { PrismaService } from '@/database/prisma/prisma.service';
+import { TASK_MESSAGES } from '@/helps/messages';
 
 import { CreateTaskDto } from './dto/create-task.dto';
 import { TaskResponseDto } from './dto/task-response.dto';
@@ -43,7 +44,7 @@ export class TasksService {
     });
 
     if (taskAlreadyExists) {
-      throw new ConflictException('Task title already exists');
+      throw new ConflictException(TASK_MESSAGES.TITLE_ALREADY_EXISTS);
     }
 
     return this.prisma.task.create({
@@ -71,7 +72,7 @@ export class TasksService {
     });
 
     if (!task) {
-      throw new NotFoundException('Task not found');
+      throw new NotFoundException(TASK_MESSAGES.NOT_FOUND);
     }
 
     return task;
@@ -93,7 +94,7 @@ export class TasksService {
       });
 
       if (taskAlreadyExists) {
-        throw new ConflictException('Task title already exists');
+        throw new ConflictException(TASK_MESSAGES.TITLE_ALREADY_EXISTS);
       }
     }
 
@@ -120,7 +121,7 @@ export class TasksService {
     const next = nextStatus[task.status as TaskStatus];
 
     if (!next) {
-      throw new BadRequestException('Task is already completed');
+      throw new BadRequestException(TASK_MESSAGES.ALREADY_COMPLETED);
     }
 
     return this.prisma.task.update({
@@ -136,13 +137,13 @@ export class TasksService {
     const task = await this.findById(id, userId);
 
     if (task.status === TaskStatus.COMPLETED) {
-      throw new BadRequestException('Completed tasks cannot be deleted');
+      throw new BadRequestException(TASK_MESSAGES.COMPLETED_CANNOT_BE_DELETED);
     }
 
     await this.prisma.task.delete({
       where: { id },
     });
 
-    return { message: 'Task successfully deleted' };
+    return { message: TASK_MESSAGES.DELETED };
   }
 }
