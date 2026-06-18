@@ -1,5 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 
 import { BadRequestSwagger } from '@/helps/swagger/bad-request.swagger';
@@ -20,6 +20,10 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Authenticate a user',
+    description: 'Validates credentials and returns a JWT access token.',
+  })
   @ApiOkResponse({
     type: AuthResponseDto,
     description: 'Authenticated successfully',

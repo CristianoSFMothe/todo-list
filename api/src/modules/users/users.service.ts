@@ -11,6 +11,7 @@ import { HashingService } from '@/shared/hashing/hashing.service';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserProfileResponseDto } from './dto/user-profile-response.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 
 @Injectable()
@@ -55,7 +56,7 @@ export class UsersService {
     });
   }
 
-  async findById(id: string): Promise<UserResponseDto> {
+  async findById(id: string): Promise<UserProfileResponseDto> {
     const user = await this.prisma.user.findUnique({
       where: { id },
       select: {

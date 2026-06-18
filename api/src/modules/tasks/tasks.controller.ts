@@ -12,6 +12,8 @@ import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOkResponse,
+  ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 
@@ -36,6 +38,10 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
+  @ApiOperation({
+    summary: 'Create a task',
+    description: 'Creates a new task owned by the authenticated user.',
+  })
   @ApiCreatedResponse({
     type: TaskResponseDto,
     description: 'Task successfully created',
@@ -59,6 +65,10 @@ export class TasksController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'List tasks',
+    description: 'Returns all tasks owned by the authenticated user.',
+  })
   @ApiOkResponse({
     type: [TaskResponseDto],
     description: 'List of the authenticated user tasks',
@@ -69,6 +79,15 @@ export class TasksController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Get a task by id',
+    description: 'Returns a single task owned by the authenticated user.',
+  })
+  @ApiParam({
+    name: 'id',
+    format: 'uuid',
+    description: 'Task identifier (UUID)',
+  })
   @ApiOkResponse({ type: TaskResponseDto, description: 'Task found' })
   @UnauthorizedSwagger('Unauthorized', 'Missing or invalid token', '/tasks/:id')
   @NotFoundSwagger('Task not found', 'Task not found', '/tasks/:id')
@@ -80,6 +99,15 @@ export class TasksController {
   }
 
   @Patch(':id')
+  @ApiOperation({
+    summary: 'Update a task',
+    description: 'Updates title, description or status of an owned task.',
+  })
+  @ApiParam({
+    name: 'id',
+    format: 'uuid',
+    description: 'Task identifier (UUID)',
+  })
   @ApiOkResponse({
     type: TaskResponseDto,
     description: 'Task successfully updated',
@@ -100,6 +128,16 @@ export class TasksController {
   }
 
   @Patch(':id/status')
+  @ApiOperation({
+    summary: 'Advance task status',
+    description:
+      'Moves the task to the next status (PENDING → IN_PROGRESS → COMPLETED).',
+  })
+  @ApiParam({
+    name: 'id',
+    format: 'uuid',
+    description: 'Task identifier (UUID)',
+  })
   @ApiOkResponse({
     type: TaskResponseDto,
     description: 'Task status advanced to the next stage',
@@ -123,6 +161,15 @@ export class TasksController {
   }
 
   @Delete(':id')
+  @ApiOperation({
+    summary: 'Delete a task',
+    description: 'Deletes an owned task (completed tasks cannot be deleted).',
+  })
+  @ApiParam({
+    name: 'id',
+    format: 'uuid',
+    description: 'Task identifier (UUID)',
+  })
   @ApiOkResponse({
     description: 'Task successfully deleted',
     schema: { example: { message: 'Task successfully deleted' } },

@@ -3,6 +3,7 @@ import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOkResponse,
+  ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
 
@@ -19,6 +20,7 @@ import {
 import { Public } from '../auth/decorators/public.decorator';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserProfileResponseDto } from './dto/user-profile-response.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UsersService } from './users.service';
 
@@ -30,6 +32,10 @@ export class UsersController {
 
   @Public()
   @Post()
+  @ApiOperation({
+    summary: 'Create a new user',
+    description: 'Public endpoint to register a new user account.',
+  })
   @ApiCreatedResponse({
     type: UserResponseDto,
     description: 'User successfully created',
@@ -49,8 +55,12 @@ export class UsersController {
   }
 
   @Get('me')
+  @ApiOperation({
+    summary: 'Get the authenticated user profile',
+    description: 'Returns the profile of the logged-in user, including tasks.',
+  })
   @ApiOkResponse({
-    type: UserResponseDto,
+    type: UserProfileResponseDto,
     description: 'Authenticated user profile',
   })
   @UnauthorizedSwagger('Unauthorized', 'Missing or invalid token', '/users/me')
@@ -59,11 +69,17 @@ export class UsersController {
     USER_MESSAGES.NOT_FOUND,
     '/users/me',
   )
-  getProfile(@CurrentUser() user: AuthenticatedUser): Promise<UserResponseDto> {
+  getProfile(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<UserProfileResponseDto> {
     return this.usersService.findById(user.id);
   }
 
   @Patch('me')
+  @ApiOperation({
+    summary: 'Update the authenticated user',
+    description: 'Updates the name and/or password of the logged-in user.',
+  })
   @ApiOkResponse({
     type: UserResponseDto,
     description: 'User successfully updated',

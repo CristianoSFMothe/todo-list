@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
+import { Request, Response } from 'express';
 
 import { AppModule } from './app.module';
 
@@ -29,6 +30,11 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
+
+  // Raw OpenAPI document (importable into Postman/Insomnia, codegen, etc.)
+  app.getHttpAdapter().get('/docs-json', (_req: Request, res: Response) => {
+    res.json(document);
+  });
 
   app.use(
     '/docs',
