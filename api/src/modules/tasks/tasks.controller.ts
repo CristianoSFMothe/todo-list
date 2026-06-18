@@ -32,7 +32,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { TasksService } from './tasks.service';
 
 @ApiTags('tasks')
-@ApiBearerAuth()
+@ApiBearerAuth('access-token')
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}

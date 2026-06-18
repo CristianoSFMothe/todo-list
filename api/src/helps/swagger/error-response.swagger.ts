@@ -1,5 +1,7 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiExtraModels, ApiResponse, getSchemaPath } from '@nestjs/swagger';
+
+import { ApiErrorResponseDto } from './api-error-response.dto';
 
 interface ApiErrorResponseParams {
   status: number;
@@ -11,7 +13,8 @@ interface ApiErrorResponseParams {
 
 /**
  * Builds an @ApiResponse documenting an error in the exact shape produced by
- * the global HttpExceptionFilter: { statusCode, error, message, path, timestamp }.
+ * the global HttpExceptionFilter. The schema is referenced from the shared
+ * ApiErrorResponseDto component, with a per-route example.
  */
 export function ApiErrorResponse({
   status,
@@ -21,27 +24,18 @@ export function ApiErrorResponse({
   path = '/',
 }: ApiErrorResponseParams) {
   return applyDecorators(
+    ApiExtraModels(ApiErrorResponseDto),
     ApiResponse({
       status,
       description,
       schema: {
-        type: 'object',
-        properties: {
-          statusCode: { type: 'number', example: status },
-          error: { type: 'string', example: error },
-          message: {
-            oneOf: [
-              { type: 'string' },
-              { type: 'array', items: { type: 'string' } },
-            ],
-            example: message,
-          },
-          path: { type: 'string', example: path },
-          timestamp: {
-            type: 'string',
-            format: 'date-time',
-            example: '2026-06-18T00:52:26.821Z',
-          },
+        allOf: [{ $ref: getSchemaPath(ApiErrorResponseDto) }],
+        example: {
+          statusCode: status,
+          error,
+          message,
+          path,
+          timestamp: '2026-06-18T00:52:26.821Z',
         },
       },
     }),
